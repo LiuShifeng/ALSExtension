@@ -19,11 +19,12 @@ similar to org.apache.spark.ml.recommendation.
 # mllib
 similar to org.apache.spark.mllib.recommendation
 * PMF.scala: Interface of PMF
-** train: traditional collaborative filtering method only focusing on observerd ratings
-** trainImplicit:Top-K version collaborative filtering method focusing on all user-item.For unobserved ratings, we give them a value of zero
+  * train: traditional collaborative filtering method only focusing on observerd ratings
+  * trainImplicit:Top-K version collaborative filtering method focusing on all user-item.For unobserved ratings, we give them a value of zero
+
 * SoRec.scala: Interface of SoRec
-** train: traditional collaborative filtering method only focusing on observerd ratings
-** trainImplicit:Top-K version collaborative filtering method focusing on all user-item.For unobserved ratings, we give them a value of zero
+  * train: traditional collaborative filtering method only focusing on observerd ratings
+  * trainImplicit:Top-K version collaborative filtering method focusing on all user-item.For unobserved ratings, we give them a value of zero
 
 
 # examples
