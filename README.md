@@ -32,7 +32,7 @@ Example scripts of how to apply these two models, which are very similar to the 
 
 #Reference
 due the limitation for accessing the Google Schoolar, the references can not be gained now. I would fill it latter
-* [1]
-* [2]
-* [3]
-* [4]
+* [1]Mnih A, Salakhutdinov R. Probabilistic matrix factorization[C]//Advances in neural information processing systems. 2007: 1257-1264.
+* [2]Ma H, Yang H, Lyu M R, et al. Sorec: social recommendation using probabilistic matrix factorization[C]//Proceedings of the 17th ACM conference on Information and knowledge management. ACM, 2008: 931-940.
+* [3]Yang X, Steck H, Guo Y, et al. On top-k recommendation using social networks[C]//Proceedings of the sixth ACM conference on Recommender systems. ACM, 2012: 67-74.
+* [4]Yang X, Guo Y, Liu Y, et al. A survey of collaborative filtering based social recommender systems[J]. Computer Communications, 2014, 41: 1-10.
