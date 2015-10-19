@@ -10,13 +10,19 @@ An extention of Spark based on the original ALS Algorithom provided in Spark.
 * All the Top-k als formulas could be found in [3]
 * [4] is also a good reference to get an overall view of matrix factorization for Top-K version
 
-# ml
+# **How to use**
+All codes listed here is developped on spark 1.3.1. So you should re-package the spark 1.3.1 with these source files here since many privete classes of spark and mllib are called in these files.
+
+For the source files in ml/recommendation, you should add them into org/apache/spark/ml/recommendation in spark 1.3.1  
+For the source files in mllib/recommendation, you should add them into org/apache/spark/mllib/recommendation in spark 1.3.1  
+For the package process, there is nothing different from the original process. Check [Building Spark](org/apache/spark/ml/recommendation in spark 1.3.1)for more details.
+
+# **ml**
 similar to org.apache.spark.ml.recommendation.
 * ALSPMF.scala:the computation part of PMF, called by PMF.scala in mllib
 * ALSSoRec.scla:the computation part of SoRec, called by SoRec.scala in mllib
-* ALS.scala:the original code of ALS on Spark
 
-# mllib
+# **mllib**
 similar to org.apache.spark.mllib.recommendation
 * PMF.scala: Interface of PMF
   * train: traditional collaborative filtering method only focusing on observerd ratings
@@ -27,10 +33,10 @@ similar to org.apache.spark.mllib.recommendation
   * trainImplicit:Top-K version collaborative filtering method focusing on all user-item.For unobserved ratings, we give them a value of zero
 
 
-# examples
+# **examples**
 Example scripts of how to apply these two models, which are very similar to the ALS example in mllib guide
 
-#Reference
+# **Reference**
 due the limitation for accessing the Google Schoolar, the references can not be gained now. I would fill it latter
 * [1]Mnih A, Salakhutdinov R. Probabilistic matrix factorization[C]//Advances in neural information processing systems. 2007: 1257-1264.
 * [2]Ma H, Yang H, Lyu M R, et al. Sorec: social recommendation using probabilistic matrix factorization[C]//Proceedings of the 17th ACM conference on Information and knowledge management. ACM, 2008: 931-940.
