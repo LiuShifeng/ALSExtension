@@ -18,24 +18,28 @@
  * limitations under the License.
  */
 
-package wti.st.ALSExtension.mllib.recommendation
+package org.apache.spark.mllib.recommendation
 
 import org.apache.spark.Logging
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.api.java.JavaRDD
-import org.apache.spark.mllib.recommendation.MatrixFactorizationModel
+import org.apache.spark.ml.recommendation.{SoRec => NewSoRec}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
-import wti.st.ALSExtension.ml.recommendation.{SoRec => NewSoRec}
 
-/**
- * A more compact class to represent a rating than Tuple3[Int, Int, Double].
- */
-@Since("0.8.0")
-case class Rating @Since("0.8.0") (
-                                    @Since("0.8.0") user: Int,
-                                    @Since("0.8.0") product: Int,
-                                    @Since("0.8.0") rating: Double)
+///**
+// * A more compact class to represent a rating than Tuple3[Int, Int, Double].
+// */
+//case class Rating(user: Int, product: Int, rating: Double)
+
+///**
+// * A more compact class to represent a rating than Tuple3[Int, Int, Double].
+// */
+//@Since("0.8.0")
+//case class Rating @Since("0.8.0") (
+//                                    @Since("0.8.0") user: Int,
+//                                    @Since("0.8.0") product: Int,
+//                                    @Since("0.8.0") rating: Double)
 
 /**
  * Alternating Least Squares matrix factorization.
@@ -66,7 +70,7 @@ case class Rating @Since("0.8.0") (
  * indicated user
  * preferences rather than explicit ratings given to items.
  */
-@Since("0.8.0")
+//@Since("0.8.0")
 class SoRec private (
                     private var numUserBlocks: Int,
                     private var numProductBlocks: Int,
@@ -85,7 +89,7 @@ class SoRec private (
    * Constructs an ALS instance with default parameters: {numBlocks: -1, rank: 10, iterations: 10,
    * items: 1, lambda: 0.01, implicitPrefs: false, alpha: 1.0,belta: 1.0, gamma: 1.0}.
    */
-  @Since("0.8.0")
+//  @Since("0.8.0")
   def this() = this(-1, -1, 10, 10, 1, 0.01, false, 1.0,1.0,1.0)
 
   /** If true, do alternating nonnegative least squares. */
@@ -102,7 +106,7 @@ class SoRec private (
    * Set the number of blocks for both user blocks and product blocks to parallelize the computation
    * into; pass -1 for an auto-configured number of blocks. Default: -1.
    */
-  @Since("0.8.0")
+//  @Since("0.8.0")
   def setBlocks(numBlocks: Int): this.type = {
     this.numUserBlocks = numBlocks
     this.numProductBlocks = numBlocks
@@ -112,7 +116,7 @@ class SoRec private (
   /**
    * Set the number of user blocks to parallelize the computation.
    */
-  @Since("1.1.0")
+//  @Since("1.1.0")
   def setUserBlocks(numUserBlocks: Int): this.type = {
     this.numUserBlocks = numUserBlocks
     this
@@ -121,42 +125,42 @@ class SoRec private (
   /**
    * Set the number of product blocks to parallelize the computation.
    */
-  @Since("1.1.0")
+//  @Since("1.1.0")
   def setProductBlocks(numProductBlocks: Int): this.type = {
     this.numProductBlocks = numProductBlocks
     this
   }
 
   /** Set the rank of the feature matrices computed (number of features). Default: 10. */
-  @Since("0.8.0")
+//  @Since("0.8.0")
   def setRank(rank: Int): this.type = {
     this.rank = rank
     this
   }
 
   /** Set the number of iterations to run. Default: 10. */
-  @Since("0.8.0")
+//  @Since("0.8.0")
   def setIterations(iterations: Int): this.type = {
     this.iterations = iterations
     this
   }
 
   /** Set the number of items to run. Default: 1. */
-  @Since("0.8.0")
+//  @Since("0.8.0")
   def setItems(items: Int): this.type = {
     this.items = items
     this
   }
 
   /** Set the regularization parameter, lambda. Default: 0.01. */
-  @Since("0.8.0")
+//  @Since("0.8.0")
   def setLambda(lambda: Double): this.type = {
     this.lambda = lambda
     this
   }
 
   /** Sets whether to use implicit preference. Default: false. */
-  @Since("0.8.1")
+//  @Since("0.8.1")
   def setImplicitPrefs(implicitPrefs: Boolean): this.type = {
     this.implicitPrefs = implicitPrefs
     this
@@ -165,7 +169,7 @@ class SoRec private (
   /**
    * Sets the constant used in computing confidence in implicit ALS. Default: 1.0.
    */
-  @Since("0.8.1")
+//  @Since("0.8.1")
   def setAlpha(alpha: Double): this.type = {
     this.alpha = alpha
     this
@@ -174,7 +178,7 @@ class SoRec private (
   /**
    * Sets the constant used in computing social influence in implicit SoRec. Default: 1.0.
    */
-  @Since("0.8.1")
+//  @Since("0.8.1")
   def setBelta(belta: Double): this.type = {
     this.belta = belta
     this
@@ -183,14 +187,14 @@ class SoRec private (
   /**
    * Sets the constant weight used for social influence in implicit SoRec. Default: 1.0.
    */
-  @Since("0.8.0")
+//  @Since("0.8.0")
   def setGamma(gamma: Double): this.type = {
     this.gamma = gamma
     this
   }
 
   /** Sets a random seed to have deterministic results. */
-  @Since("1.0.0")
+//  @Since("1.0.0")
   def setSeed(seed: Long): this.type = {
     this.seed = seed
     this
@@ -200,7 +204,7 @@ class SoRec private (
    * Set whether the least-squares problems solved at each iteration should have
    * nonnegativity constraints.
    */
-  @Since("1.1.0")
+//  @Since("1.1.0")
   def setNonnegative(b: Boolean): this.type = {
     this.nonnegative = b
     this
@@ -213,7 +217,7 @@ class SoRec private (
    * set `spark.rdd.compress` to `true` to reduce the space requirement, at the cost of speed.
    */
   @DeveloperApi
-  @Since("1.1.0")
+//  @Since("1.1.0")
   def setIntermediateRDDStorageLevel(storageLevel: StorageLevel): this.type = {
     require(storageLevel != StorageLevel.NONE,
       "ALS is not designed to run without persisting intermediate RDDs.")
@@ -229,7 +233,7 @@ class SoRec private (
    * at the cost of speed.
    */
   @DeveloperApi
-  @Since("1.3.0")
+//  @Since("1.3.0")
   def setFinalRDDStorageLevel(storageLevel: StorageLevel): this.type = {
     this.finalRDDStorageLevel = storageLevel
     this
@@ -243,7 +247,7 @@ class SoRec private (
    * this setting is ignored.
    */
   @DeveloperApi
-  @Since("1.4.0")
+//  @Since("1.4.0")
   def setCheckpointInterval(checkpointInterval: Int): this.type = {
     this.checkpointInterval = checkpointInterval
     this
@@ -253,7 +257,7 @@ class SoRec private (
    * Run ALS with the configured parameters on an input RDD of (user, product, rating) triples.
    * Returns a MatrixFactorizationModel with feature vectors for each user and product.
    */
-  @Since("0.8.0")
+//  @Since("0.8.0")
   def run(ratings: RDD[Rating]): MatrixFactorizationModel = {
     val sc = ratings.context
 
@@ -302,16 +306,16 @@ class SoRec private (
   }
 
   /**
-   * Java-friendly version of [[ALS.run]].
+   * Java-friendly version of [[org.apache.spark.mllib.recommendation.ALS.run]].
    */
-  @Since("1.3.0")
+//  @Since("1.3.0")
   def run(ratings: JavaRDD[Rating]): MatrixFactorizationModel = run(ratings.rdd)
 }
 
 /**
  * Top-level methods for calling Alternating Least Squares (ALS) matrix factorization.
  */
-@Since("0.8.0")
+//@Since("0.8.0")
 object SoRec {
   /**
    * Train a matrix factorization model given an RDD of ratings given by users to some products,
@@ -329,7 +333,7 @@ object SoRec {
    * @param blocks     level of parallelism to split computation into
    * @param seed       random seed
    */
-  @Since("0.9.1")
+//  @Since("0.9.1")
   def train(
              ratings: RDD[Rating],
              rank: Int,
@@ -358,7 +362,7 @@ object SoRec {
    * @param gamma      weight for social influence
    * @param blocks     level of parallelism to split computation into
    */
-  @Since("0.8.0")
+//  @Since("0.8.0")
   def train(
              ratings: RDD[Rating],
              rank: Int,
@@ -368,7 +372,7 @@ object SoRec {
              gamma: Double,
              blocks: Int
              ): MatrixFactorizationModel = {
-    new SoRec(blocks, blocks, rank, iterations, items, lambda, false, 1.0,gamma).run(ratings)
+    new SoRec(blocks, blocks, rank, iterations, items, lambda, false, 1.0, 1.0,gamma).run(ratings)
   }
 
   /**
@@ -385,7 +389,7 @@ object SoRec {
    * @param lambda     regularization factor (recommended: 0.01)
    * @param gamma      weight for social influence
    */
-  @Since("0.8.0")
+//  @Since("0.8.0")
   def train(ratings: RDD[Rating], rank: Int, iterations: Int, items: Int, lambda: Double, gamma: Double)
   : MatrixFactorizationModel = {
     train(ratings, rank, iterations, items, lambda, gamma, -1)
@@ -403,7 +407,7 @@ object SoRec {
    * @param iterations number of iterations of ALS (recommended: 10-20)
    * @param items      number of items
    */
-  @Since("0.8.0")
+//  @Since("0.8.0")
   def train(ratings: RDD[Rating], rank: Int, iterations: Int, items: Int)
   : MatrixFactorizationModel = {
     train(ratings, rank, iterations, items, 0.01, 1.0,-1)
@@ -427,7 +431,7 @@ object SoRec {
    * @param gamma      weight for social influence
    * @param seed       random seed
    */
-  @Since("0.8.1")
+//  @Since("0.8.1")
   def trainImplicit(
                      ratings: RDD[Rating],
                      rank: Int,
@@ -460,7 +464,7 @@ object SoRec {
    * @param belta      confidence parameter for social influence
    * @param gamma      weight for social influence
    */
-  @Since("0.8.1")
+//  @Since("0.8.1")
   def trainImplicit(
                      ratings: RDD[Rating],
                      rank: Int,
@@ -491,7 +495,7 @@ object SoRec {
    * @param belta      confidence parameter for social influence
    * @param gamma      weight for social influence
    */
-  @Since("0.8.1")
+//  @Since("0.8.1")
   def trainImplicit(ratings: RDD[Rating], rank: Int, iterations: Int, items: Int, lambda: Double, alpha: Double, belta: Double, gamma: Double)
   : MatrixFactorizationModel = {
     trainImplicit(ratings, rank, iterations, items, lambda, -1, alpha, belta, gamma)
@@ -510,7 +514,7 @@ object SoRec {
    * @param iterations number of iterations of ALS (recommended: 10-20)
    * @param items      number of items
    */
-  @Since("0.8.1")
+//  @Since("0.8.1")
   def trainImplicit(ratings: RDD[Rating], rank: Int, iterations: Int, items: Int)
   : MatrixFactorizationModel = {
     trainImplicit(ratings, rank, iterations, items, 0.01, -1, 1.0, 1.0, 1.0)
