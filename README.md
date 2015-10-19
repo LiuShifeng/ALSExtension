@@ -13,9 +13,9 @@ An extention of Spark based on the original ALS Algorithom provided in Spark.
 # **How to use**
 All codes listed here is developped on spark 1.3.1. So you should re-package the spark 1.3.1 with these source files here since many privete classes of spark and mllib are called in these files.
 
-*For the source files in ml/recommendation, you should add them into org/apache/spark/ml/recommendation in spark 1.3.1  
-*For the source files in mllib/recommendation, you should add them into org/apache/spark/mllib/recommendation in spark 1.3.1 
-*For the package process, there is nothing different from the original process. Check [Building Spark](org/apache/spark/ml/recommendation in spark 1.3.1)for more details.
+* For the source files in ml/recommendation, you should add them into org/apache/spark/ml/recommendation in spark 1.3.1  
+* For the source files in mllib/recommendation, you should add them into org/apache/spark/mllib/recommendation in spark 1.3.1
+* For the package process, there is nothing different from the original process. Check [Building Spark](org/apache/spark/ml/recommendation in spark 1.3.1)for more details.
 
 # **ml**
 similar to org.apache.spark.ml.recommendation.
