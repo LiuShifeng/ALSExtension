@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package wti.st.ALSExtension.ml.recommendation
+package org.apache.spark.ml.recommendation
 
 import java.io.IOException
 import java.{util => ju}
@@ -28,19 +28,18 @@ import com.github.fommil.netlib.LAPACK.{getInstance => lapack}
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.annotation.{DeveloperApi, Experimental}
 import org.apache.spark.ml.param._
-import org.apache.spark.ml.param.shared._
-import org.apache.spark.ml.util.{Identifiable, SchemaUtils}
 import org.apache.spark.ml.{Estimator, Model}
 import org.apache.spark.mllib.optimization.NNLS
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{DoubleType, FloatType, IntegerType, StructType}
+import org.apache.spark.sql.types._
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.util.Utils
 import org.apache.spark.util.collection.{OpenHashMap, OpenHashSet, SortDataFormat, Sorter}
 import org.apache.spark.util.random.XORShiftRandom
 import org.apache.spark.{Logging, Partitioner}
+import org.jblas.DoubleMatrix
 import org.netlib.util.intW
 
 import scala.collection.mutable
@@ -57,112 +56,107 @@ private[recommendation] trait SoRecModelParams extends Params with HasPrediction
    * Default: "user"
    * @group param
    */
-  val userCol = new Param[String](this, "userCol", "column name for user ids")
+  val userCol = new Param[String](this, "userCol", "column name for user ids", Some("user"))
 
   /** @group getParam */
-  def getUserCol: String = $(userCol)
+  def getUserCol: String = get(userCol)
 
   /**
    * Param for the column name for item ids.
    * Default: "item"
    * @group param
    */
-  val itemCol = new Param[String](this, "itemCol", "column name for item ids")
+  val itemCol = new Param[String](this, "itemCol", "column name for item ids", Some("item"))
 
   /** @group getParam */
-  def getItemCol: String = $(itemCol)
+  def getItemCol: String = get(itemCol)
 }
 
 /**
  * Common params for ALS.
  */
 private[recommendation] trait SoRecParams extends SoRecModelParams with HasMaxIter with HasRegParam
-with HasPredictionCol with HasCheckpointInterval with HasSeed {
+with HasPredictionCol with HasCheckpointInterval {
 
   /**
    * Param for rank of the matrix factorization (>= 1).
    * Default: 10
    * @group param
    */
-  val rank = new IntParam(this, "rank", "rank of the factorization", ParamValidators.gtEq(1))
+  val rank = new IntParam(this, "rank", "rank of the factorization", Some(10))
 
   /** @group getParam */
-  def getRank: Int = $(rank)
+  def getRank: Int = get(rank)
 
   /**
    * Param for number of user blocks (>= 1).
    * Default: 10
    * @group param
    */
-  val numUserBlocks = new IntParam(this, "numUserBlocks", "number of user blocks",
-    ParamValidators.gtEq(1))
+  val numUserBlocks = new IntParam(this, "numUserBlocks", "number of user blocks", Some(10))
 
   /** @group getParam */
-  def getNumUserBlocks: Int = $(numUserBlocks)
+  def getNumUserBlocks: Int = get(numUserBlocks)
 
   /**
    * Param for number of item blocks (>= 1).
    * Default: 10
    * @group param
    */
-  val numItemBlocks = new IntParam(this, "numItemBlocks", "number of item blocks",
-    ParamValidators.gtEq(1))
+  val numItemBlocks = new IntParam(this, "numItemBlocks", "number of item blocks", Some(10))
 
   /** @group getParam */
-  def getNumItemBlocks: Int = $(numItemBlocks)
+  def getNumItemBlocks: Int = get(numItemBlocks)
 
   /**
    * Param to decide whether to use implicit preference.
    * Default: false
    * @group param
    */
-  val implicitPrefs = new BooleanParam(this, "implicitPrefs", "whether to use implicit preference")
+  val implicitPrefs = new BooleanParam(this, "implicitPrefs", "whether to use implicit preference", Some(false))
 
   /** @group getParam */
-  def getImplicitPrefs: Boolean = $(implicitPrefs)
+  def getImplicitPrefs: Boolean = get(implicitPrefs)
 
   /**
    * Param for the alpha parameter in the implicit preference formulation (>= 0).
    * Default: 1.0
    * @group param
    */
-  val alpha = new DoubleParam(this, "alpha", "alpha for implicit preference",
-    ParamValidators.gtEq(0))
+  val alpha = new DoubleParam(this, "alpha", "alpha for implicit preference", Some(1.0))
 
   /** @group getParam */
-  def getAlpha: Double = $(alpha)
+  def getAlpha: Double = get(alpha)
 
   /**
    * Param for the belta parameter in the implicit preference formulation (>= 0).
    * Default: 1.0
    * @group param
    */
-  val belta = new DoubleParam(this, "belta", "belta for implicit preference",
-    ParamValidators.gtEq(0))
+  val belta = new DoubleParam(this, "belta", "belta for implicit preference", Some(1.0))
 
   /** @group getParam */
-  def getBelta: Double = $(belta)
+  def getBelta: Double = get(belta)
 
   /**
    * Param for the gamma parameter for the social influence formulation (>= 0).
    * Default: 1.0
    * @group param
    */
-  val gamma = new DoubleParam(this, "gamma", "gamma for implicit preference",
-    ParamValidators.gtEq(0))
+  val gamma = new DoubleParam(this, "gamma", "gamma for implicit preference", Some(1.0))
 
   /** @group getParam */
-  def getGamma: Double = $(gamma)
+  def getGamma: Double = get(gamma)
 
   /**
    * Param for the column name for ratings.
    * Default: "rating"
    * @group param
    */
-  val ratingCol = new Param[String](this, "ratingCol", "column name for ratings")
+  val ratingCol = new Param[String](this, "ratingCol", "column name for ratings", Some("rating"))
 
   /** @group getParam */
-  def getRatingCol: String = $(ratingCol)
+  def getRatingCol: String = get(ratingCol)
 
   /**
    * Param for whether to apply nonnegativity constraints.
@@ -170,55 +164,54 @@ with HasPredictionCol with HasCheckpointInterval with HasSeed {
    * @group param
    */
   val nonnegative = new BooleanParam(
-    this, "nonnegative", "whether to use nonnegative constraint for least squares")
+    this, "nonnegative", "whether to use nonnegative constraint for least squares", Some(false))
 
   /** @group getParam */
-  def getNonnegative: Boolean = $(nonnegative)
+  def getNonnegative: Boolean = get(nonnegative)
 
-  setDefault(rank -> 10, maxIter -> 10, regParam -> 0.1, numUserBlocks -> 10, numItemBlocks -> 10,
-    implicitPrefs -> false, alpha -> 1.0, belta -> 1.0, gamma -> 1.0, userCol -> "user", itemCol -> "item",
-    ratingCol -> "rating", nonnegative -> false, checkpointInterval -> 10)
+//  setDefault(rank -> 10, maxIter -> 10, regParam -> 0.1, numUserBlocks -> 10, numItemBlocks -> 10,
+//    implicitPrefs -> false, alpha -> 1.0, belta -> 1.0, gamma -> 1.0, userCol -> "user", itemCol -> "item",
+//    ratingCol -> "rating", nonnegative -> false, checkpointInterval -> 10)
 
   /**
    * Validates and transforms the input schema.
    * @param schema input schema
    * @return output schema
    */
-  protected def validateAndTransformSchema(schema: StructType): StructType = {
-    SchemaUtils.checkColumnType(schema, $(userCol), IntegerType)
-    SchemaUtils.checkColumnType(schema, $(itemCol), IntegerType)
-    val ratingType = schema($(ratingCol)).dataType
-    require(ratingType == FloatType || ratingType == DoubleType)
-    SchemaUtils.appendColumn(schema, $(predictionCol), FloatType)
+  protected def validateAndTransformSchema(schema: StructType, paramMap: ParamMap): StructType = {
+    val map = this.paramMap ++ paramMap
+    assert(schema(map(userCol)).dataType == IntegerType)
+    assert(schema(map(itemCol)).dataType== IntegerType)
+    val ratingType = schema(map(ratingCol)).dataType
+    assert(ratingType == FloatType || ratingType == DoubleType)
+    val predictionColName = map(predictionCol)
+    assert(!schema.fieldNames.contains(predictionColName),
+      s"Prediction column $predictionColName already exists.")
+    val newFields = schema.fields :+ StructField(map(predictionCol), FloatType, nullable = false)
+    StructType(newFields)
   }
 }
 
 /**
- * :: Experimental ::
  * Model fitted by ALS.
- *
- * @param rank rank of the matrix factorization model
- * @param userFactors a DataFrame that stores user factors in two columns: `id` and `features`
- * @param itemFactors a DataFrame that stores item factors in two columns: `id` and `features`
  */
-@Experimental
 class SoRecModel private[ml] (
-                             override val uid: String,
-                             val rank: Int,
-                             @transient val userFactors: DataFrame,
-                             @transient val itemFactors: DataFrame)
-  extends Model[SoRecModel] with SoRecModelParams {
-
-  /** @group setParam */
-  def setUserCol(value: String): this.type = set(userCol, value)
-
-  /** @group setParam */
-  def setItemCol(value: String): this.type = set(itemCol, value)
+                             override val parent: SoRec,
+                             override val fittingParamMap: ParamMap,
+                             rank: Int,
+                             userFactors: RDD[(Int, Array[Float])],
+                             itemFactors: RDD[(Int, Array[Float])])
+  extends Model[SoRecModel] with SoRecParams {
 
   /** @group setParam */
   def setPredictionCol(value: String): this.type = set(predictionCol, value)
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: DataFrame, paramMap: ParamMap): DataFrame = {
+    import dataset.sqlContext.implicits._
+    val map = this.paramMap ++ paramMap
+    val users = userFactors.toDF("id", "features")
+    val items = itemFactors.toDF("id", "features")
+
     // Register a UDF for DataFrame, and then
     // create a new column named map(predictionCol) by running the predict UDF.
     val predict = udf { (userFeatures: Seq[Float], itemFeatures: Seq[Float]) =>
@@ -229,21 +222,13 @@ class SoRecModel private[ml] (
       }
     }
     dataset
-      .join(userFactors, dataset($(userCol)) === userFactors("id"), "left")
-      .join(itemFactors, dataset($(itemCol)) === itemFactors("id"), "left")
-      .select(dataset("*"),
-        predict(userFactors("features"), itemFactors("features")).as($(predictionCol)))
+      .join(users, dataset(map(userCol)) === users("id"), "left")
+      .join(items, dataset(map(itemCol)) === items("id"), "left")
+      .select(dataset("*"), predict(users("features"), items("features")).as(map(predictionCol)))
   }
 
-  override def transformSchema(schema: StructType): StructType = {
-    SchemaUtils.checkColumnType(schema, $(userCol), IntegerType)
-    SchemaUtils.checkColumnType(schema, $(itemCol), IntegerType)
-    SchemaUtils.appendColumn(schema, $(predictionCol), FloatType)
-  }
-
-  override def copy(extra: ParamMap): SoRecModel = {
-    val copied = new SoRecModel(uid, rank, userFactors, itemFactors)
-    copyValues(copied, extra).setParent(parent)
+  override def transformSchema(schema: StructType, paramMap: ParamMap): StructType = {
+    validateAndTransformSchema(schema, paramMap)
   }
 }
 
@@ -281,9 +266,7 @@ class SoRecModel private[ml] (
 @Experimental
 class SoRec(override val uid: String) extends Estimator[SoRecModel] with SoRecParams {
 
-  import org.apache.spark.ml.recommendation.ALS.Rating
-
-  def this() = this(Identifiable.randomUID("als"))
+  import org.apache.spark.ml.recommendation.SoRec.Rating
 
   /** @group setParam */
   def setRank(value: Int): this.type = set(rank, value)
@@ -330,9 +313,6 @@ class SoRec(override val uid: String) extends Estimator[SoRecModel] with SoRecPa
   /** @group setParam */
   def setCheckpointInterval(value: Int): this.type = set(checkpointInterval, value)
 
-  /** @group setParam */
-  def setSeed(value: Long): this.type = set(seed, value)
-
   /**
    * Sets both numUserBlocks and numItemBlocks to the specific value.
    * @group setParam
@@ -343,29 +323,31 @@ class SoRec(override val uid: String) extends Estimator[SoRecModel] with SoRecPa
     this
   }
 
-  override def fit(dataset: DataFrame): SoRecModel = {
+  setMaxIter(20)
+  setRegParam(1.0)
+  setCheckpointInterval(10)
+
+  override def fit(dataset: DataFrame, paramMap: ParamMap): SoRecModel = {
+    val map = this.paramMap ++ paramMap
     val ratings = dataset
-      .select(col($(userCol)).cast(IntegerType), col($(itemCol)).cast(IntegerType),
-        col($(ratingCol)).cast(FloatType))
+      .select(col(map(userCol)).cast(IntegerType), col(map(itemCol)).cast(IntegerType),
+        col(map(ratingCol)).cast(FloatType))
       .map { row =>
       Rating(row.getInt(0), row.getInt(1), row.getFloat(2))
     }
-    val (userFactors, itemFactors) = SoRec.train(ratings, rank = $(rank),
-      numUserBlocks = $(numUserBlocks), numItemBlocks = $(numItemBlocks),
-      maxIter = $(maxIter), regParam = $(regParam), implicitPrefs = $(implicitPrefs),
-      alpha = $(alpha), belta = $(belta), gamma = $(gamma), nonnegative = $(nonnegative),
-      checkpointInterval = $(checkpointInterval), seed = $(seed))
-    val userDF = userFactors.toDF("id", "features")
-    val itemDF = itemFactors.toDF("id", "features")
-    val model = new SoRecModel(uid, $(rank), userDF, itemDF).setParent(this)
-    copyValues(model)
+    val (userFactors, itemFactors) = SoRec.train(ratings, rank = map(rank),
+      numUserBlocks = map(numUserBlocks), numItemBlocks = map(numItemBlocks),
+      maxIter = map(maxIter), regParam = map(regParam), implicitPrefs = map(implicitPrefs),
+      alpha = map(alpha), belta = map(belta), gamma = map(gamma), nonnegative = map(nonnegative),
+      checkpointInterval = map(checkpointInterval))
+    val model = new SoRecModel(this, map, map(rank), userFactors, itemFactors)
+    Params.inheritValues(map, this, model)
+    model
   }
 
-  override def transformSchema(schema: StructType): StructType = {
-    validateAndTransformSchema(schema)
+  override def transformSchema(schema: StructType, paramMap: ParamMap): StructType = {
+    validateAndTransformSchema(schema, paramMap)
   }
-
-  override def copy(extra: ParamMap): SoRec = defaultCopy(extra)
 }
 
 /**
@@ -435,14 +417,14 @@ object SoRec extends Logging {
   private[recommendation] class NNLSSolver extends LeastSquaresNESolver {
     private var rank: Int = -1
     private var workspace: NNLS.Workspace = _
-    private var ata: Array[Double] = _
+    private var ata: DoubleMatrix = _
     private var initialized: Boolean = false
 
     private def initialize(rank: Int): Unit = {
       if (!initialized) {
         this.rank = rank
         workspace = NNLS.createWorkspace(rank)
-        ata = new Array[Double](rank * rank)
+        ata = new DoubleMatrix(rank, rank)
         initialized = true
       } else {
         require(this.rank == rank)
@@ -459,7 +441,7 @@ object SoRec extends Logging {
       val rank = ne.k
       initialize(rank)
       fillAtA(ne.ata, lambda)
-      val x = NNLS.solve(ata, ne.atb, workspace)
+      val x = NNLS.solve(ata, new DoubleMatrix(rank, 1, ne.atb: _*), workspace)
       ne.reset()
       x.map(x => x.toFloat)
     }
@@ -472,16 +454,17 @@ object SoRec extends Logging {
       var i = 0
       var pos = 0
       var a = 0.0
+      val data = ata.data
       while (i < rank) {
         var j = 0
         while (j <= i) {
           a = triAtA(pos)
-          ata(i * rank + j) = a
-          ata(j * rank + i) = a
+          data(i * rank + j) = a
+          data(j * rank + i) = a
           pos += 1
           j += 1
         }
-        ata(i * rank + i) += lambda
+        data(i * rank + i) += lambda
         i += 1
       }
     }
