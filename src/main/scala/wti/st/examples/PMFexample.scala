@@ -1,15 +1,14 @@
-/**
- * Created by LiuShifeng on 2015/10/12.
- */
-
-import org.apache.spark.{SparkContext, SparkConf}
-import org.apache.spark.mllib.recommendation.MatrixFactorizationModel
-import org.apache.spark.mllib.recommendation.Rating
-import wti.st.ALSExtension.mllib.recommendation.PMF
+import org.apache.spark.mllib.recommendation.{MatrixFactorizationModel, Rating}
+import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.mllib.recommendation.PMF
 
 object PMFexample{
   def main(args: Array[String]) {
-    val sparkConf = new SparkConf().setAppName("PMFExample").set("spark.akka.heartbeat.pauses", "1200").set("spark.akka.failure-detector.threshold", "600").set("spark.akka.heartbeat.interval", "2000")
+    val sparkConf = new SparkConf()
+      .setAppName("PMFExample")
+      .set("spark.akka.heartbeat.pauses", "1200")
+      .set("spark.akka.failure-detector.threshold", "600")
+      .set("spark.akka.heartbeat.interval", "2000")
     val sc = new SparkContext(sparkConf)
     // Load and parse the data
     val data = sc.textFile("data/mllib/als/test.data")
@@ -25,7 +24,7 @@ object PMFexample{
     //Rating Version
     val model = PMF.train(ratings, rank, numIterations, lambda)
     //Top-K Version
-    val model = PMF.trainImplicit(ratings, rank, numIterations, lambda, alpha)
+    //val model = PMF.trainImplicit(ratings, rank, numIterations, lambda, alpha)
 
     // Evaluate the model on rating data
     val usersProducts = ratings.map { case Rating(user, product, rate) =>
@@ -39,7 +38,7 @@ object PMFexample{
       ((user, product), rate)
     }.join(predictions)
     val MSE = ratesAndPreds.map { case ((user, product), (r1, r2)) =>
-      val err = (r1 - r2)
+      val err = r1 - r2
       err * err
     }.mean()
     println("Mean Squared Error = " + MSE)
@@ -47,6 +46,8 @@ object PMFexample{
     // Save and load model
     model.save(sc, "myModelPath")
     val sameModel = MatrixFactorizationModel.load(sc, "myModelPath")
+
+
   }
 }
 
